@@ -1,0 +1,47 @@
+[
+  {
+    "time": 19,
+    "rear_vehicle": "V1",
+    "front_vehicle": "V2",
+    "lane": 1,
+    "gap": 6.5,
+    "ttc": 4.33,
+    "risk": "MODERATE"
+  },
+  {
+    "time": 20,
+    "rear_vehicle": "V1",
+    "front_vehicle": "V2",
+    "lane": 1,
+    "gap": 5.0,
+    "ttc": 3.33,
+    "risk": "MODERATE"
+  },
+  {
+    "time": 21,
+    "rear_vehicle": "V1",
+    "front_vehicle": "V2",
+    "lane": 1,
+    "gap": 3.5,
+    "ttc": 2.33,
+    "risk": "MODERATE"
+  },
+  {
+    "time": 22,
+    "rear_vehicle": "V1",
+    "front_vehicle": "V2",
+    "lane": 1,
+    "gap": 2.0,
+    "ttc": 1.33,
+    "risk": "HIGH"
+  },
+  {
+    "time": 23,
+    "rear_vehicle": "V1",
+    "front_vehicle": "V2",
+    "lane": 1,
+    "gap": 0.5,
+    "ttc": 0.33,
+    "risk": "HIGH"
+  }
+]
