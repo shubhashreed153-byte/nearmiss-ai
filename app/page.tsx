@@ -1,69 +1,84 @@
-import Image from "next/image";
+"use client";
+import {useState,useEffect} from "react";
 
-export default function Home() {
-  return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
-  );
+type V={time:string;id:string;lane:string;x:number;speed:number};
+type E={time:string;rear_vehicle:string;front_vehicle:string;gap:number;ttc:number;risk:string};
+const pages=["Home","Command Centre","Road Simulation","Conflict Monitor","Vehicle Analytics","Safety Validation","Methodology"];
+const css=`
+*{box-sizing:border-box}body{margin:0;background:#080f1d;color:#edf5ff;font-family:Arial}button,input,select{font:inherit}button{cursor:pointer}
+.side{position:fixed;inset:0 auto 0 0;width:220px;background:#0c1829;border-right:1px solid #293e53;padding:20px 14px;display:flex;flex-direction:column;z-index:2}
+.main{margin-left:220px;padding:25px;max-width:1600px}.brand{font-size:21px;letter-spacing:2px;font-weight:900;color:#58e5d5}
+.muted{color:#91a9bd;font-size:13px;line-height:1.7}.nav{display:block;width:100%;padding:11px;margin:4px 0;text-align:left;border:1px solid transparent;border-radius:9px;background:transparent;color:#a8bdd0}
+.nav.active,.nav:hover{background:#153c48;color:#6cebd9;border-color:#34717b}
+.panel,.metric,.feature{background:linear-gradient(145deg,#172a40,#101c2e);border:1px solid #2b425a;border-radius:15px;padding:18px}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:17px 0}.metric strong{font-size:29px;display:block;margin:12px 0}
+.cols{display:grid;grid-template-columns:1.2fr 1fr;gap:14px;margin:16px 0}
+.btn{background:linear-gradient(100deg,#3acbc1,#9af0d9);color:#071722;border:0;border-radius:9px;padding:11px 15px;font-weight:bold}
+.ghost{background:#192c41;color:#c7dce9;border:1px solid #3b536b;border-radius:8px;padding:9px 12px}
+.tag{display:inline-block;background:#173d45;color:#6de7d7;border-radius:30px;padding:7px 11px;font-size:11px}
+.hero{border:1px solid #31566a;border-radius:20px;padding:27px;background:radial-gradient(ellipse at 80%,#247b83,#17364c 40%,#111e32 80%);margin:18px 0}
+.hero h1{font-size:clamp(32px,4vw,52px);margin:18px 0}.features{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:17px 0}
+.feature{cursor:pointer}.feature:hover{border-color:#59e2d3;transform:translateY(-2px)}
+.field{width:100%;padding:11px;border:1px solid #3b536b;border-radius:8px;background:#091626;color:white;margin:8px 0 13px}
+table{width:100%;border-collapse:collapse;min-width:520px;margin-top:12px}td,th{padding:11px 7px;text-align:left;border-bottom:1px solid #2b3e53;font-size:13px}th{color:#91a9bd;font-size:11px}.table{overflow:auto}
+.high{color:#ff7e88}.moderate{color:#f5c36b}.bar{height:8px;background:#293e53;border-radius:20px;overflow:hidden;margin:8px 0 14px}.bar i{display:block;height:100%;background:linear-gradient(90deg,#28b9b9,#85efda)}
+.road{height:260px;position:relative;background:#202d3a;border-radius:12px;overflow:hidden;border:8px solid #293846}
+.lane{height:50%;border-bottom:3px dashed #dce7d866;position:relative}
+.car{position:absolute;top:35%;font-size:25px;transition:left .45s linear;z-index:1;white-space:nowrap;text-shadow:0 2px 4px #000}
+.car small{display:block;font-size:10px;text-align:center;color:white}
+.login{min-height:100vh;display:grid;grid-template-columns:1.2fr .8fr;align-items:center;gap:30px;padding:7vw;background:radial-gradient(ellipse at 25% 40%,#164454,#091321 65%)}
+.login h1{font-size:clamp(40px,6vw,70px);line-height:1.05}.loginCard{padding:28px;border-radius:20px;background:#14263b;border:1px solid #416077}
+.toast{position:fixed;bottom:20px;right:20px;background:#17474b;padding:13px;border:1px solid #55e3d3;border-radius:10px;z-index:10}
+@media(max-width:900px){.side{position:relative;width:100%;inset:auto;padding:12px}.navlist{display:flex;overflow:auto}.nav{min-width:max-content;width:auto}.main{margin:0;padding:14px}.login{grid-template-columns:1fr}.cards{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.cols,.features{grid-template-columns:1fr}.main{padding:10px}}
+@media print{.side,button,input{display:none!important}.main{margin:0;padding:0}}
+`;
+
+function parseCSV(s:string):V[]{
+ const rows=s.trim().split(/\r?\n/).map(l=>l.match(/("([^"]|"")*"|[^,]*)(,|$)/g)?.map(x=>x.replace(/,$/,"").replace(/^"|"$/g,"").replace(/""/g,'"').trim())||[]);
+ if(rows.length<2)throw Error("CSV has no data rows");
+ const h=rows[0].map(x=>x.toLowerCase().replace(/[^a-z0-9]/g,""));
+ const find=(a:string[])=>h.findIndex(x=>a.includes(x));
+ const ti=find(["time","timestamp","frame","t"]),vi=find(["vehicleid","vehicle","id","trackid","objectid"]),li=find(["lane","laneid","laneno"]),xi=find(["position","x","longitudinalposition","xposition","localx","s"]),si=find(["speed","velocity","speedmps","velocitymps","speedkmh","velocitykmh","v"]);
+ if(vi<0||xi<0||si<0)throw Error("Required columns: vehicle_id, position and speed.");
+ return rows.slice(1).filter(r=>r.length>1).map((r,i)=>({time:r[ti]||"0",id:r[vi]||`V${i}`,lane:r[li]||"1",x:+r[xi],speed:+r[si]/(h[si].includes("kmh")?3.6:1)})).filter(v=>v.id&&Number.isFinite(v.x)&&Number.isFinite(v.speed));
+}
+function analyse(d:V[],h:number,m:number):E[]{
+ const groups=new Map<string,V[]>();d.forEach(v=>groups.set(v.time+"|"+v.lane,[...(groups.get(v.time+"|"+v.lane)||[]),v]));
+ const out:E[]=[];groups.forEach(a=>{a.sort((x,y)=>x.x-y.x);for(let i=0;i<a.length-1;i++){const r=a[i],f=a[i+1],gap=f.x-r.x,closing=r.speed-f.speed;if(gap>0&&closing>0&&gap/closing<=m){const ttc=gap/closing;out.push({time:r.time,rear_vehicle:r.id,front_vehicle:f.id,gap,ttc,risk:ttc<=h?"HIGH":"MODERATE"})}}});
+ return out.sort((a,b)=>a.ttc-b.ttc);
+}
+
+export default function Home(){
+ const [logged,L]=useState(false),[mode,M]=useState("Sign in"),[username,U]=useState(""),[password,P]=useState("");
+ const [page,S]=useState("Home"),[data,D]=useState<V[]>([]),[events,E]=useState<E[]>([]),[file,F]=useState("");
+ const [highLimit,H]=useState(2),[midLimit,Q]=useState(5),[query,Y]=useState(""),[filter,Z]=useState("ALL"),[picked,K]=useState<E|null>(null);
+ const [toast,T]=useState(""),[frame,B]=useState(0),[playing,G]=useState(false),[rate,R]=useState(1),[step,J]=useState(0);
+ const notify=(s:string)=>{T(s);setTimeout(()=>T(""),2500)};
+ const times=[...new Set(data.map(v=>v.time))].sort((a,b)=>Number(a)-Number(b));
+ const current=data.filter(v=>v.time===times[frame]);
+ const vehicles=[...new Set(data.map(v=>v.id))],high=events.filter(e=>e.risk==="HIGH").length,moderate=events.length-high;
+ const filtered=events.filter(e=>(filter==="ALL"||e.risk===filter)&&(e.rear_vehicle+e.front_vehicle).toLowerCase().includes(query.toLowerCase()));
+ const min=Math.min(...data.map(v=>v.x),0),max=Math.max(...data.map(v=>v.x),1);
+ useEffect(()=>{if(!playing)return;const id=setInterval(()=>B(f=>f>=times.length-1?0:f+1),700/rate);return()=>clearInterval(id)},[playing,rate,times.length]);
+ const clear=()=>{D([]);E([]);F("");B(0);G(false);notify("Dataset cleared")};
+ const load=async()=>{try{const r=await fetch("/trajectories.csv");if(!r.ok)throw Error("Place trajectories.csv inside public folder.");const d=parseCSV(await r.text());D(d);F("trajectories.csv");E([]);B(0);notify(`${d.length} records loaded`)}catch(e){notify(e instanceof Error?e.message:"Load failed")}};
+ const upload=async(f:File)=>{try{const d=parseCSV(await f.text());D(d);F(f.name);E([]);B(0);notify(`${d.length} records loaded. Analyse dataset.`)}catch(e){notify(e instanceof Error?e.message:"Invalid CSV")}};
+ const process=()=>{E(analyse(data,highLimit,midLimit));notify("Analysis completed")};
+ const table=(items:E[])=><div className="table"><table><thead><tr>{["TIME","REAR","FRONT","GAP","TTC","RISK",""].map(x=><th key={x}>{x}</th>)}</tr></thead><tbody>{items.map((e,i)=><tr key={i}><td>{e.time}</td><td>{e.rear_vehicle}</td><td>{e.front_vehicle}</td><td>{e.gap.toFixed(2)} m</td><td>{e.ttc.toFixed(2)} s</td><td className={e.risk==="HIGH"?"high":"moderate"}>{e.risk}</td><td><button className="ghost" onClick={()=>K(e)}>Inspect</button></td></tr>)}</tbody></table>{!items.length&&<p className="muted">No events. Load and analyse a dataset.</p>}</div>;
+ const steps=[["DATA INPUT","CSV records contain timestamp, vehicle ID, lane, position and speed.","time, vehicle_id, lane, position, speed"],["PREPROCESSING","Records are grouped by timestamp and lane. Vehicles are sorted by longitudinal position.","Sort vehicles by position (x), within each lane and time."],["GAP CALCULATION","The distance between a rear vehicle and the vehicle ahead.","Gap = Front position − Rear position"],["CLOSING SPEED","Only vehicles approaching the vehicle ahead are considered.","Closing speed = Rear speed − Front speed"],["TIME TO COLLISION","Estimated time to reach the front vehicle if the current closing speed remains constant.","TTC = Gap / Closing speed"],["RISK CLASSIFICATION","TTC is compared with the selected thresholds.","HIGH: TTC ≤ high limit · MODERATE: high limit < TTC ≤ moderate limit"]];
+ if(!logged)return <><style>{css}</style><div className="login"><div><div className="brand">◈ NEARMISS</div><span className="tag">AUTOMOTIVE SAFETY INTELLIGENCE</span><h1>Predict risk.<br/>Protect every journey.</h1><p className="muted">Vehicle trajectory analysis and traffic conflict detection.</p><div style={{fontSize:60}}>🚘　🏎️　🚙</div></div><form className="loginCard" onSubmit={e=>{e.preventDefault();if(mode==="Create account"){localStorage.setItem("nm_"+username,password);notify("Account created. Sign in.");M("Sign in")}else if(localStorage.getItem("nm_"+username)===password||(!localStorage.getItem("nm_"+username)&&username==="analyst"&&password==="near123"))L(true);else notify("Invalid login.")}}><div className="brand">NEARMISS ACCESS</div><h2>{mode}</h2><input className="field" placeholder="Username" value={username} onChange={e=>U(e.target.value)} required/><input className="field" type="password" placeholder="Password" value={password} onChange={e=>P(e.target.value)} required/><button className="btn" style={{width:"100%"}}>{mode} →</button><p className="muted" onClick={()=>M(mode==="Sign in"?"Create account":"Sign in")}>{mode==="Sign in"?"Create account":"Back to sign in"}</p><p className="muted">Demo: analyst / near123</p></form></div>{toast&&<div className="toast">{toast}</div>}</>;
+
+ return <><style>{css}</style><aside className="side"><div className="brand">◈ NEARMISS</div><p className="muted">SAFETY INTELLIGENCE</p><div className="navlist">{pages.map((p,i)=><button key={p} className={"nav "+(page===p?"active":"")} onClick={()=>S(p)}>{["⌂","◈","🚘","◎","▥","🛡","⌘"][i]}　{p}</button>)}</div><div style={{marginTop:"auto"}} className="panel"><span className="tag">WORKSPACE</span><p className="muted">Signed in as {username}</p><button className="ghost" onClick={()=>L(false)}>Logout</button></div></aside>
+ <main className="main"><header style={{display:"flex",justifyContent:"space-between",flexWrap:"wrap",borderBottom:"1px solid #293d52",paddingBottom:14}}><div><div className="muted">NEARMISS / AUTOMOTIVE / {page.toUpperCase()}</div><h2>{page}</h2></div><div><button className="ghost" onClick={()=>S("Home")}>⌂ Home</button> <button className="ghost" onClick={()=>window.print()}>Print report</button></div></header>
+ {page==="Home"&&<><div className="hero"><span className="tag">AUTOMOTIVE SAFETY</span><h1>See the risk.<br/>Understand the road.</h1><p className="muted">Analyse vehicle trajectories and identify potential conflicts.</p><button className="btn" onClick={()=>S("Command Centre")}>Launch Command Centre →</button></div><div className="features">{pages.slice(1).map((p,i)=><div className="feature" key={p} onClick={()=>S(p)}><b>{["◈","🚘","⚠️","📊","🛡️","⚙️"][i]}　{p} ↗</b><p className="muted">Explore {p.toLowerCase()}.</p></div>)}</div><div className="panel"><h3>Dataset workspace</h3><p className="muted">{file||"No dataset"} · {data.length} records</p><input className="field" type="file" accept=".csv" onChange={e=>{if(e.target.files?.[0])upload(e.target.files[0]);e.target.value=""}}/><button className="ghost" onClick={load}>Load reference CSV</button> <button className="btn" disabled={!data.length} onClick={process}>Analyse Dataset</button> <button className="ghost" onClick={clear}>Clear Dataset</button></div></>}
+ {page==="Command Centre"&&<><div className="panel"><h3>Dataset controls</h3><p className="muted">{file||"No dataset"} · {data.length} records · {vehicles.length} vehicles · {times.length} frames</p><input className="field" type="file" accept=".csv" onChange={e=>{if(e.target.files?.[0])upload(e.target.files[0]);e.target.value=""}}/><button className="ghost" onClick={load}>Load reference CSV</button> <button className="btn" disabled={!data.length} onClick={process}>Analyse Dataset</button> <button className="ghost" onClick={clear}>Clear Dataset</button> <button className="ghost" onClick={()=>E([])}>Clear Analysis</button></div><div className="cards">{[["EVENTS",events.length],["HIGH RISK",high],["MODERATE",moderate],["VEHICLES",vehicles.length]].map(([a,b])=><div className="metric" key={String(a)}><span className="muted">{a}</span><strong>{b}</strong></div>)}</div><div className="cols"><div className="panel"><h3>Risk distribution</h3>HIGH: {high}<div className="bar"><i style={{width:(events.length?high/events.length*100:0)+"%"}}/></div>MODERATE: {moderate}<div className="bar"><i style={{width:(events.length?moderate/events.length*100:0)+"%"}}/></div></div><div className="panel"><h3>Average TTC</h3><strong style={{fontSize:32}}>{events.length?(events.reduce((s,e)=>s+e.ttc,0)/events.length).toFixed(2)+" s":"—"}</strong></div></div><div className="panel"><h3>Recent events</h3>{table(events.slice(0,8))}</div></>}
+ {page==="Road Simulation"&&<div className="panel"><h2>Live trajectory playback</h2><p className="muted">Vehicles move according to their recorded position, lane and timestamp. Playback speed changes how quickly recorded frames are shown.</p><div className="road">{[0,1].map(l=><div className="lane" key={l}>{current.filter(v=>v.lane===String(l+1)).map(v=><div className="car" key={v.id} style={{left:`${Math.max(1,Math.min(91,(v.x-min)/(max-min||1)*88))}%`,color:events.some(e=>e.time===v.time&&(e.rear_vehicle===v.id||e.front_vehicle===v.id))?"#ff747e":"#70e7d8"}}>🚘<small>{v.id}</small></div>)}</div>)}</div><h3>Time: {times[frame]??"—"} s</h3><input type="range" min="0" max={Math.max(0,times.length-1)} value={frame} onChange={e=>{B(+e.target.value);G(false)}} style={{width:"100%"}}/><button className="btn" onClick={()=>G(!playing)} disabled={!times.length}>{playing?"Pause":"Play"} ▶</button> <button className="ghost" onClick={()=>{B(0);G(false)}}>Reset</button> <select className="ghost" value={rate} onChange={e=>R(+e.target.value)}><option value="1">1×</option><option value="2">2×</option><option value="4">4×</option></select><p className="muted">{current.length} vehicles · {frame+1}/{times.length} frames · positions in dataset units</p></div>}
+ {page==="Conflict Monitor"&&<div className="panel"><h2>Conflict Event Explorer</h2><input className="field" style={{width:"auto"}} placeholder="Search vehicle ID" value={query} onChange={e=>Y(e.target.value)}/><select className="field" style={{width:"auto"}} value={filter} onChange={e=>Z(e.target.value)}><option>ALL</option><option>HIGH</option><option>MODERATE</option></select>{table(filtered)}<button className="btn" onClick={()=>{const csv=["time,rear,front,gap,ttc,risk",...filtered.map(e=>[e.time,e.rear_vehicle,e.front_vehicle,e.gap,e.ttc,e.risk].join(","))].join("\n"),a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="nearmiss-conflicts.csv";a.click()}}>Export CSV ↓</button></div>}
+ {page==="Vehicle Analytics"&&<><div className="cards"><div className="metric">VEHICLES<strong>{vehicles.length}</strong></div><div className="metric">RECORDS<strong>{data.length}</strong></div></div><div className="cols"><div className="panel"><h3>Vehicle participation</h3>{vehicles.map(v=>{const n=events.filter(e=>e.rear_vehicle===v||e.front_vehicle===v).length;return <p key={v}>{v} · {n} events<div className="bar"><i style={{width:(events.length?n/events.length*100:0)+"%"}}/></div></p>})}</div><div className="panel"><h3>TTC comparison</h3>{events.slice(0,12).map((e,i)=><p key={i} className="muted">{e.rear_vehicle} → {e.front_vehicle} · {e.ttc.toFixed(2)} s</p>)}</div></div></>}
+ {page==="Safety Validation"&&<div className="cols"><div className="panel"><h2>Threshold configuration</h2><label className="muted">High risk: {highLimit}s</label><input type="range" min="1" max="5" step=".5" value={highLimit} onChange={e=>H(+e.target.value)} style={{width:"100%"}}/><label className="muted">Moderate limit: {midLimit}s</label><input type="range" min="2" max="15" step=".5" value={midLimit} onChange={e=>Q(+e.target.value)} style={{width:"100%"}}/><button className="btn" onClick={process} disabled={!data.length||midLimit<=highLimit}>Recalculate risks</button><p className="muted">High: TTC ≤ {highLimit}s · Moderate: {highLimit}s less than TTC ≤ {midLimit}s</p></div><div className="panel"><h2>Validation summary</h2><strong style={{fontSize:35}}>{events.length}</strong><p className="high">High: {high}</p><p className="moderate">Moderate: {moderate}</p></div></div>}
+ {page==="Methodology"&&<div className="panel"><span className="tag">HOW NEARMISS WORKS</span><h2>Interactive analysis methodology</h2><div className="features">{steps.map((s,i)=><button className="feature" key={s[0]} onClick={()=>J(i)} style={{textAlign:"left",color:"white",borderColor:step===i?"#59e2d3":""}}><b style={{color:"#62e6d5"}}>{s[0]}</b><p className="muted">{s[1]}</p></button>)}</div><div className="hero"><span className="tag">STEP {step+1} / {steps.length}</span><h2>{steps[step][0]}</h2><p>{steps[step][1]}</p><h2 style={{color:"#6de7d7"}}>{steps[step][2]}</h2><button className="ghost" onClick={()=>J(Math.max(0,step-1))}>← Previous</button> <button className="btn" onClick={()=>J(Math.min(steps.length-1,step+1))}>Next →</button></div><p className="muted">Assumptions: positions are longitudinal distances and speeds are metres/second (km/h headers are converted). TTC assumes constant closing speed. It is a simplified safety indicator, not collision probability or a validated ADAS prediction.</p></div>}
+ <footer className="muted" style={{borderTop:"1px solid #293d52",marginTop:28,paddingTop:16}}>NEARMISS · AUTOMOTIVE SAFETY INTELLIGENCE</footer></main>
+ {picked&&<div style={{position:"fixed",inset:0,background:"#020813e8",display:"grid",placeItems:"center",zIndex:5}} onClick={()=>K(null)}><div className="panel" onClick={e=>e.stopPropagation()}><span className="tag">CONFLICT INSPECTOR</span><h2>{picked.rear_vehicle} → {picked.front_vehicle}</h2><strong style={{fontSize:38}}>{picked.ttc.toFixed(2)} s</strong><p>Gap: {picked.gap.toFixed(2)} m · Time: {picked.time}</p><p className={picked.risk==="HIGH"?"high":"moderate"}>{picked.risk} RISK</p><button className="btn" onClick={()=>K(null)}>Close</button></div></div>}
+ {toast&&<div className="toast">{toast}</div>}</>;
 }
